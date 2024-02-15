@@ -39,6 +39,18 @@ main {
   padding: 32px 64px;
 }
 
+.card-container .card-title,
+.card-container .card-title h3 {
+  margin: 0;
+  padding: 0;
+}
+
+.card-container button {
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
 .card {
   margin-bottom: 16px;
 }

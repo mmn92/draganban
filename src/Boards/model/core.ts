@@ -1,21 +1,28 @@
 // Board -> Columns -> Cards
 
 export type Card = {
-  id?: number;
+  id?: string;
   title: string;
   description?: string;
 };
 
 export type Column = {
-  id?: number;
+  id?: string;
   title: string;
   cards: Array<Card>; // -> Array or Obj???
 };
 
 export type Board = {
+  id?: string;
   title: string;
   columns: Array<Column>; // -> Array or Obj???
 };
+
+export type Persisted<T> = T & { id: string };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type PersistedFn<T extends (...args: any[]) => any> = (
+  ...args: Parameters<T>
+) => Persisted<ReturnType<T>>;
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -38,7 +45,7 @@ export type EditBoard = (board: Board, newBoard: Partial<Board>) => Board;
 //  Implementation
 ////////////////////////////////////////////////////////////////////////////
 export const createCard: CreateCard = (card) => ({
-  id: card.id ?? -1,
+  id: card.id ?? "-1",
   title: card.title,
   description: card.description ?? "",
 });
@@ -63,7 +70,7 @@ export const editCard: EditCard = (card, newCard) => ({
 });
 
 export const createColumn: CreateColumn = (column) => ({
-  id: column.id ?? -1,
+  id: column.id ?? "-1",
   title: column.title,
   cards: [],
 });
@@ -88,6 +95,7 @@ export const editColumn: EditColumn = (column, newColumn) => ({
 });
 
 export const createBoard: CreateBoard = (board, columns = []) => ({
+  id: board.id ?? "-1",
   title: board.title,
   columns,
 });
