@@ -17,7 +17,6 @@ export default function Collector({
     () => ({
       accept: acceptType,
       drop: (dropped) => {
-        console.log("something dropped: ", dropped);
         if (validateDraggedItem(dropped)) {
           onDrop(dropped);
         }

@@ -66,11 +66,7 @@ export default function Main() {
     );
   }
 
-  console.log("BOARDS:", boards, selected);
-
   const selectedBoard = boards.filter((b) => b.id === selected.id)[0];
-
-  console.log("SELECTED BOARD:", selectedBoard);
 
   if (selectedBoard) {
     return (
@@ -79,7 +75,6 @@ export default function Main() {
           key={JSON.stringify(selectedBoard)}
           board={selectedBoard}
           updateBoard={(newBoard: Persisted<Board>) => {
-            console.log("NEWBOARD:", newBoard);
             const updatedBoards = boards.map((b) =>
               b.id === newBoard.id ? newBoard : b
             );

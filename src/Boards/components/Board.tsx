@@ -42,8 +42,6 @@ export function BoardEntry({
   // const columnStorage = LocalStorageRepository<Persisted<Column>>(BoardKey);
   const boardService = BoardService();
 
-  console.log("BOARD PROP:", board);
-
   // new card:
   // service.createNewCard -> addCardToColumn -> updateBoard -> repository.save
   const handleNewCard = (column: Column, newCard: Card) => {
@@ -101,24 +99,18 @@ export function BoardEntry({
 
   const dragCard = (cardId: string, from: string, to: string) => {
     if (from === to) return;
-    console.log("after first validation");
 
     const fromCol = board.columns.filter((c) => c.id === from)[0];
     const toCol = board.columns.filter((c) => c.id === to)[0];
 
     if (!fromCol || !toCol) return;
-    console.log("after second validation");
-    console.log("cols:", fromCol, toCol);
 
     const card = fromCol.cards.filter((c) => c.id === cardId)[0];
 
     if (!card) return;
-    console.log("after trhird validation");
 
     const updatedFromCol = removeCardFromColumn(fromCol, card);
     const updatedToCol = addCardToColumn(toCol, card);
-
-    console.log("updatedCols: ", updatedFromCol, updatedToCol);
 
     const updatedBoard = {
       ...board,
@@ -215,7 +207,6 @@ export function BoardEntry({
               <Collector
                 acceptType={DragPiecesEnum.CARD}
                 onDrop={(item) => {
-                  console.log("dropped:", item, "\nOn column:", col.id);
                   dragCard(item.itemId, item.originId || "", col.id || "");
                 }}
                 key={col.id}
@@ -353,22 +344,6 @@ export function BoardEntry({
           >
             New Column
           </button>
-          <Collector
-            acceptType={DragPiecesEnum.CARD}
-            onDrop={(item) => {
-              console.log("dropped:", item);
-            }}
-          >
-            <div
-              style={{
-                width: "200px",
-                height: "200px",
-                border: "2px solid black",
-              }}
-            >
-              Drop Here!
-            </div>
-          </Collector>
         </section>
       </main>
     </>
