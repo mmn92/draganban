@@ -1,4 +1,5 @@
 // Board -> Columns -> Cards
+// BaseType = { id?: string } -> Card, Column, Board extends BaseType
 
 export type Card = {
   id?: string;

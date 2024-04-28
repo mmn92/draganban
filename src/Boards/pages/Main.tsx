@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import { BoardEntry } from "../components/Board";
 import { Board, Persisted } from "../model/core";
 import { BoardKey, LocalStorageRepository } from "../repository/Board";
@@ -57,33 +59,42 @@ export default function Main() {
             </li>
           ))}
         </ul>
-        <button onClick={() => handleNewBoard()}>Create new Board</button>
+        <button className="pointer app-btn" onClick={() => handleNewBoard()}>
+          Create new Board
+        </button>
       </>
     );
   }
 
+  console.log("BOARDS:", boards, selected);
+
   const selectedBoard = boards.filter((b) => b.id === selected.id)[0];
+
+  console.log("SELECTED BOARD:", selectedBoard);
 
   if (selectedBoard) {
     return (
-      <>
+      <DndProvider backend={HTML5Backend}>
         <BoardEntry
+          key={JSON.stringify(selectedBoard)}
           board={selectedBoard}
           updateBoard={(newBoard: Persisted<Board>) => {
+            console.log("NEWBOARD:", newBoard);
             const updatedBoards = boards.map((b) =>
               b.id === newBoard.id ? newBoard : b
             );
+
             setBoards(updatedBoards);
             boardStorage.update(newBoard);
           }}
         />
         <span
-          style={{ cursor: "pointer" }}
+          style={{ cursor: "pointer", padding: "0 32px" }}
           onClick={() => setSelected(undefined)}
         >
           🔙
         </span>
-      </>
+      </DndProvider>
     );
   }
 }

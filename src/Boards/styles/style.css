@@ -1,3 +1,33 @@
+/**** Utils/Base/Objects ****/
+.app-btn {
+  border: 4px solid black;
+  background: none;
+  padding: 8px;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+button.clear {
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.hover-show > .hover-action {
+  display: none;
+}
+
+.hover-show:hover > .hover-action {
+  display: initial;
+}
+
+/***************************/
+
 header {
   padding: 8px 32px;
 }
@@ -6,9 +36,14 @@ main {
   padding: 0 32px;
 }
 
+.board-title .edittable-title {
+  display: flex;
+}
+
 .boards-container {
   display: flex;
   gap: 16px;
+  margin-bottom: 16px;
 }
 
 .board-column {

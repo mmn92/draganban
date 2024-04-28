@@ -11,6 +11,9 @@ import "../styles/style.css";
 import { useState } from "react";
 // import { BoardKey, LocalStorageRepository } from "../repository/Board";
 import { BoardService } from "../services/Board";
+import Draggable from "./Draggable";
+import Collector from "./Collector";
+import { DragPiecesEnum } from "../model/drag";
 
 export function BoardEntry({
   board,
@@ -38,6 +41,8 @@ export function BoardEntry({
   // const cardStorage = LocalStorageRepository<Persisted<Card>>(BoardKey);
   // const columnStorage = LocalStorageRepository<Persisted<Column>>(BoardKey);
   const boardService = BoardService();
+
+  console.log("BOARD PROP:", board);
 
   // new card:
   // service.createNewCard -> addCardToColumn -> updateBoard -> repository.save
@@ -94,6 +99,41 @@ export function BoardEntry({
     // boardStorage.save(updatedBoard);
   };
 
+  const dragCard = (cardId: string, from: string, to: string) => {
+    if (from === to) return;
+    console.log("after first validation");
+
+    const fromCol = board.columns.filter((c) => c.id === from)[0];
+    const toCol = board.columns.filter((c) => c.id === to)[0];
+
+    if (!fromCol || !toCol) return;
+    console.log("after second validation");
+    console.log("cols:", fromCol, toCol);
+
+    const card = fromCol.cards.filter((c) => c.id === cardId)[0];
+
+    if (!card) return;
+    console.log("after trhird validation");
+
+    const updatedFromCol = removeCardFromColumn(fromCol, card);
+    const updatedToCol = addCardToColumn(toCol, card);
+
+    console.log("updatedCols: ", updatedFromCol, updatedToCol);
+
+    const updatedBoard = {
+      ...board,
+      columns: board.columns.map((c) =>
+        c.id === updatedFromCol.id
+          ? updatedFromCol
+          : c.id === updatedToCol.id
+          ? updatedToCol
+          : c
+      ),
+    };
+
+    updateBoard(updatedBoard);
+  };
+
   const moveCard = (card: Card, from: number, to: number) => {
     if (from < 0 || to < 0) return;
     const fromCol = board.columns[from];
@@ -130,143 +170,172 @@ export function BoardEntry({
           className="board-title"
         >
           {editting.field === "title" ? (
-            <input
-              autoFocus
-              type="text"
-              defaultValue={board.title}
-              value={editting.value}
-              onChange={(e) => {
-                setEditting((p) => ({ ...p, value: e.target.value }));
-              }}
-            />
+            <div className="edit-input">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+
+                  const formData = new FormData(e.target as HTMLFormElement);
+                  const title = formData.get("title");
+                  if (title) {
+                    handleEditTitle(String(title));
+                  }
+
+                  setEditting({ field: "none", id: "", value: "" });
+                }}
+              >
+                <input
+                  autoFocus
+                  type="text"
+                  name="title"
+                  defaultValue={board.title}
+                />
+                <button type="submit" className="clear">
+                  ✅
+                </button>
+              </form>
+            </div>
           ) : (
-            <h2>{board.title}</h2>
+            <div className="edittable-title hover-show">
+              <h2>{board.title}</h2>
+              <button
+                className="clear hover-action"
+                onClick={() => {
+                  setEditting({ field: "title", id: "", value: "" });
+                }}
+              >
+                ✏️
+              </button>
+            </div>
           )}
-          <button
-            style={{
-              background: "none",
-              border: "none",
-              outline: "none",
-              cursor: "pointer",
-            }}
-            onClick={() => {
-              if (editting.field === "none") {
-                setEditting({ field: "title", id: "", value: "" });
-              }
-              if (editting.field === "title") {
-                handleEditTitle(editting.value);
-                setEditting({ field: "none", id: "", value: "" });
-              }
-            }}
-          >
-            {editting.field === "title" ? "✅" : "✏️"}
-          </button>
         </section>
         <section className="boards-container">
           {board.columns.length > 0 ? (
             board.columns.map((col, index, arr) => (
-              <div key={col.id} className="board-column">
-                <div className="column-body">
-                  <h3
-                    style={{ display: "flex", alignItems: "center" }}
-                    className="board-title"
-                  >
-                    {editting.field === "column" && editting.id === col.id ? (
-                      <input
-                        autoFocus
-                        type="text"
-                        defaultValue={col.title}
-                        value={editting.value}
-                        onChange={(e) => {
-                          setEditting((p) => ({ ...p, value: e.target.value }));
+              <Collector
+                acceptType={DragPiecesEnum.CARD}
+                onDrop={(item) => {
+                  console.log("dropped:", item, "\nOn column:", col.id);
+                  dragCard(item.itemId, item.originId || "", col.id || "");
+                }}
+                key={col.id}
+              >
+                <div className="board-column">
+                  <div className="column-body">
+                    <h3
+                      style={{ display: "flex", alignItems: "center" }}
+                      className="board-title"
+                    >
+                      {editting.field === "column" && editting.id === col.id ? (
+                        <>
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+
+                              const formData = new FormData(
+                                e.target as HTMLFormElement
+                              );
+                              const title = formData.get("title");
+                              if (title) {
+                                handleEditColumnTitle(
+                                  editting.id,
+                                  String(title)
+                                );
+                              }
+
+                              setEditting({ field: "none", id: "", value: "" });
+                            }}
+                          >
+                            <input
+                              autoFocus
+                              type="text"
+                              defaultValue={col.title}
+                              name="title"
+                            />
+                            <button className="clear" type="submit">
+                              ✅
+                            </button>
+                          </form>
+                        </>
+                      ) : (
+                        <div className="edittable-title hover-show">
+                          <h2>{col.title}</h2>
+                          <button
+                            className="clear hover-action"
+                            onClick={() => {
+                              setEditting({
+                                field: "column",
+                                id: col.id || "",
+                                value: "",
+                              });
+                            }}
+                          >
+                            ✏️
+                          </button>
+                        </div>
+                      )}
+                    </h3>
+                    <ul className="card-list">
+                      {col.cards.map((c) => (
+                        <li key={c.id} className="card">
+                          <Draggable
+                            item={c}
+                            originId={col.id}
+                            itemType={DragPiecesEnum.CARD}
+                          >
+                            <BoardCard
+                              card={c}
+                              canPrevious={index > 0}
+                              handlePrevious={() => {
+                                moveCard(c, index, index - 1);
+                              }}
+                              canNext={index + 1 < arr.length}
+                              handleNext={() => {
+                                moveCard(c, index, index + 1);
+                              }}
+                            />
+                          </Draggable>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="column-footer">
+                    {newCardCol === col.id ? (
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+
+                          const formData = new FormData(
+                            e.target as HTMLFormElement
+                          );
+                          const title = formData.get("title");
+                          if (title) {
+                            handleNewCard(col, { title: String(title) });
+                          }
+
+                          setNewCardCol("-1");
                         }}
-                      />
-                    ) : (
-                      <h2>{col.title}</h2>
-                    )}
-                    <button
-                      style={{
-                        background: "none",
-                        border: "none",
-                        outline: "none",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => {
-                        if (editting.field === "none") {
-                          setEditting({
-                            field: "column",
-                            id: col.id || "",
-                            value: "",
-                          });
-                        }
-                        if (
-                          editting.field === "column" &&
-                          editting.id === col.id
-                        ) {
-                          handleEditColumnTitle(editting.id, editting.value);
-                          setEditting({ field: "none", id: "", value: "" });
-                        }
-                      }}
-                    >
-                      {editting.field === "column" && editting.id === col.id
-                        ? "✅"
-                        : "✏️"}
-                    </button>
-                  </h3>
-                  <ul className="card-list">
-                    {col.cards.map((c) => (
-                      <li key={c.id} className="card">
-                        <BoardCard
-                          card={c}
-                          canPrevious={index > 0}
-                          handlePrevious={() => {
-                            moveCard(c, index, index - 1);
-                          }}
-                          canNext={index + 1 < arr.length}
-                          handleNext={() => {
-                            moveCard(c, index, index + 1);
-                          }}
+                      >
+                        <input
+                          autoFocus
+                          type="text"
+                          name="title"
+                          placeholder="new card title"
                         />
-                      </li>
-                    ))}
-                  </ul>
+                      </form>
+                    ) : (
+                      <span
+                        className="action"
+                        onClick={() => {
+                          setNewCardCol(col.id || "-1");
+                        }}
+                      >
+                        ➕
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="column-footer">
-                  {newCardCol === col.id ? (
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-
-                        const formData = new FormData(
-                          e.target as HTMLFormElement
-                        );
-                        const title = formData.get("title");
-                        if (title) {
-                          handleNewCard(col, { title: String(title) });
-                        }
-
-                        setNewCardCol("-1");
-                      }}
-                    >
-                      <input
-                        autoFocus
-                        type="text"
-                        name="title"
-                        placeholder="new card title"
-                      />
-                    </form>
-                  ) : (
-                    <span
-                      className="action"
-                      onClick={() => {
-                        setNewCardCol(col.id || "-1");
-                      }}
-                    >
-                      ➕
-                    </span>
-                  )}
-                </div>
-              </div>
+              </Collector>
             ))
           ) : (
             <h2>No columns yet</h2>
@@ -274,6 +343,7 @@ export function BoardEntry({
         </section>
         <section className="column-action">
           <button
+            className="pointer app-btn"
             onClick={() => {
               handleNewColumn({
                 title: "New Column",
@@ -283,6 +353,22 @@ export function BoardEntry({
           >
             New Column
           </button>
+          <Collector
+            acceptType={DragPiecesEnum.CARD}
+            onDrop={(item) => {
+              console.log("dropped:", item);
+            }}
+          >
+            <div
+              style={{
+                width: "200px",
+                height: "200px",
+                border: "2px solid black",
+              }}
+            >
+              Drop Here!
+            </div>
+          </Collector>
         </section>
       </main>
     </>
