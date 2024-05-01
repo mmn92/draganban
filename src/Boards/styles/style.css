@@ -26,6 +26,11 @@ button.clear {
   display: initial;
 }
 
+.contrast-hover:hover {
+  background-color: #000;
+  color: #fff;
+}
+
 /***************************/
 
 header {
@@ -34,6 +39,20 @@ header {
 
 main {
   padding: 0 32px;
+}
+
+.board-list {
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.board-list > .board-item {
+  border: 2px solid black;
+  text-align: center;
+  margin-bottom: 4px;
+  padding: 8px 16px;
 }
 
 .board-title .edittable-title {

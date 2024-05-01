@@ -47,9 +47,10 @@ export default function Main() {
   if (!selected) {
     return (
       <>
-        <ul>
+        <ul className="board-list">
           {boards.map((b) => (
             <li
+              className="board-item contrast-hover"
               style={{ cursor: "pointer", width: "fit-content" }}
               key={b.id}
               data-id={b.id}
@@ -59,7 +60,10 @@ export default function Main() {
             </li>
           ))}
         </ul>
-        <button className="pointer app-btn" onClick={() => handleNewBoard()}>
+        <button
+          className="pointer app-btn contrast-hover"
+          onClick={() => handleNewBoard()}
+        >
           Create new Board
         </button>
       </>
